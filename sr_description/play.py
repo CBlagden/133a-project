@@ -11,11 +11,10 @@ import numpy as np
 from GeneratorNode     import GeneratorNode
 from KinematicChain    import KinematicChain
 from TransformHelpers  import *
+from music import l_theme as NOTES
 
 N_SHARED_JOINTS = 8
 N_FINGER_JOINTS = 4
-
-
 
 
 def dedup(lst):
@@ -39,10 +38,10 @@ class Trajectory():
         print(self.joints)
 
         self.q = np.zeros((len(self.joints), 1)).reshape((-1,1))
-        self.err = np.zeros((12, 1))
+        self.err = np.zeros((10, 1))
 
         self.q_centers = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), FINGER_CENTERS, FINGER_CENTERS])
-        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 100 * np.ones((N_FINGER_JOINTS * 2, 1))])
+        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 0 * np.ones((N_FINGER_JOINTS * 2, 1))])
 
     def build_J(self):
         paJw = self.pachain.Jw()
@@ -58,16 +57,17 @@ class Trajectory():
         mf = thJ[:, N_SHARED_JOINTS:]
 
         zeros = np.zeros(th.shape)
+
         
         pa_orientation = np.hstack([paJw, zeros, zeros])
-        full_pa =        np.hstack([shared, zeros, zeros])
+        height_pa =      np.hstack([shared, zeros, zeros])[2, :].reshape((1,16))
         full_th =        np.hstack([shared, th, zeros])
         full_mf =        np.hstack([shared, zeros, mf])
 
-        return np.vstack([pa_orientation, full_pa, full_th, full_mf])
+        return np.vstack([pa_orientation, height_pa, full_th, full_mf])
 
     def ptip(self):
-        p0 = self.pachain.ptip()
+        p0 = self.pachain.ptip()[2]
         p1 = self.thchain.ptip()
         p2 = self.mfchain.ptip()
 
@@ -92,10 +92,10 @@ class Trajectory():
 
 
         
-        pa_x_desired = np.array([103 + np.sin(t), 87, 0]).reshape((3,1)) * 0.01
+        pa_x_desired = np.array([1]).reshape((1,1)) * 0.01
         th_x_desired = np.array([100, 100, 2*np.sin(15*t)]).reshape((3,1)) * 0.01
         mf_x_desired = np.array([105, 100, 2*np.sin(15*t)]).reshape((3,1)) * 0.01
-        pa_v_desired = np.array([0,   0,   np.cos(t)]).reshape((3,1)) * 0.01
+        pa_v_desired = np.array([0]).reshape((1,1)) * 0.01
         th_v_desired = np.array([0,   0,   np.cos(t)]).reshape((3,1)) * 0.01
         mf_v_desired = np.array([0,   0,   np.cos(t)]).reshape((3,1)) * 0.01
 
@@ -106,11 +106,13 @@ class Trajectory():
 
 
         J = self.build_J()
+        Jinv = J.T @ np.linalg.inv(J @ J.T + 0.0001 * np.eye(10))
         xdot = np.vstack([pa_wd, pa_v_desired, th_v_desired, mf_v_desired])
 
+
         qdot_secondary = self.lams * (self.q_centers - self.q)
-        qdot = np.linalg.pinv(J) @ (xdot + self.lam * err)
-        qdot = qdot + (np.eye(len(self.joints)) - np.linalg.pinv(J) @ J) @ qdot_secondary
+        qdot = Jinv @ (xdot + self.lam * err)
+        qdot = qdot + (np.eye(len(self.joints)) - Jinv @ J) @ qdot_secondary
 
         # Integrate the joint position and update the kin chain data.
         q = q + dt * qdot
