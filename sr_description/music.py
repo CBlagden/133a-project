@@ -13,8 +13,8 @@ class Note():
 
 
 
-NOTE_DUR = 0.25
-INTER_NOTE_DUR = 0.03
+NOTE_DUR = 0.25 * 1.5
+INTER_NOTE_DUR = 0.03 * 2
 
 R = "R"
 L = "L"

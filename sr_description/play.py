@@ -47,7 +47,7 @@ class Trajectory():
 
 
         self.joints = dedup(self.pachain.jointnames + self.thchain.jointnames + self.mfchain.jointnames)
-        self.lam = 60
+        self.lam = 100
         print(self.joints)
 
         self.q = np.zeros((len(self.joints), 1)).reshape((-1,1))
@@ -59,14 +59,15 @@ class Trajectory():
         self.th_x_desired_prev = self.th_p0
         self.mf_x_desired_prev = self.mf_p0
 
-        self.left_segments = self.build_segments(self.th_p0, LEFT_NOTES)
-        self.right_segments = self.build_segments(self.mf_p0, RIGHT_NOTES)
+        INITIAL_DURATION = 3.0 
+        self.left_segments = self.build_segments(self.th_p0, INITIAL_DURATION, LEFT_NOTES)
+        self.right_segments = self.build_segments(self.mf_p0, INITIAL_DURATION, RIGHT_NOTES)
 
         self.left_t0 = 0.0
         self.right_t0 = 0.0
 
         self.q_centers = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), FINGER_CENTERS, FINGER_CENTERS])
-        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 10 * np.ones((N_FINGER_JOINTS * 2, 1))])
+        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 20 * np.ones((N_FINGER_JOINTS * 2, 1))])
 
     def build_J(self):
         paJw = self.pachain.Jw()
@@ -111,23 +112,28 @@ class Trajectory():
         bb = KEYS_MAPPING[note.note]
         return bb.center().reshape((3, 1))
 
-    def build_segments(self, p0: np.ndarray, notes: List[Note]) -> List[SplineCubic]:
+    def build_segments(self, p0: np.ndarray, initial_duration, notes: List[Note]) -> List[SplineCubic]:
         segments = []
+        delta_z = np.array([0, 0, 0.03]).reshape((-1, 1))
+
         for i, note in enumerate(notes):
             if i == 0:
                 pA = p0
-                move_duration = 3
+                move_duration = initial_duration
+
+                pB = self.get_note_position(note)
+                segments.append(GotoCubic(pA, pB + delta_z, initial_duration))
+                segments.append(GotoCubic(pB + delta_z, pB, note.start + 0.2))
+                segments.append(Hold(pB, note.duration))
             else:
                 pA = self.get_note_position(notes[i - 1])
                 move_duration = note.start - notes[i - 1].start - notes[i-1].duration
-            pB = self.get_note_position(note)
-
-            delta_z = np.array([0, 0, 0.03]).reshape((-1, 1))
-
-            segments.append(GotoCubic(pA, pA + delta_z, move_duration / 3))
-            segments.append(GotoCubic(pA + delta_z, pB + delta_z, move_duration / 3))
-            segments.append(GotoCubic(pB + delta_z, pB, move_duration / 3))
-            segments.append(Hold(pB, note.duration))
+                pB = self.get_note_position(note)
+                
+                segments.append(GotoCubic(pA, pA + delta_z, move_duration / 8))
+                segments.append(GotoCubic(pA + delta_z, pB + delta_z, 3 * move_duration / 4))
+                segments.append(GotoCubic(pB + delta_z, pB, move_duration / 8))
+                segments.append(Hold(pB, note.duration))
         segments.append(Stay(pB))
 
         return segments
