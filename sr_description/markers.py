@@ -4,6 +4,7 @@ import numpy as np
 from asyncio            import Future
 from rclpy.node         import Node
 from visualization_msgs.msg import Marker
+import keys
 
 
 def build_piano_key(tstamp, px, py):
@@ -12,9 +13,9 @@ def build_piano_key(tstamp, px, py):
     marker.header.stamp = tstamp
     marker.header.frame_id = "world"
     marker.type = Marker.CUBE
-    marker.scale.x = 0.025
-    marker.scale.y = 0.09
-    marker.scale.z = 0.025
+    marker.scale.x = keys.SX
+    marker.scale.y = keys.SY
+    marker.scale.z = keys.SZ
     marker.pose.position.x = px
     marker.pose.position.y = py
     marker.pose.position.z = -marker.scale.z/2
@@ -85,10 +86,14 @@ class MarkerNode(Node):
 
 
         # Build up a command message and publish.
-        for i in range(10):
-            marker = build_piano_key(now.to_msg(), 1.0 + (0.025 + 0.001) * i, 1.0)
+        for (i, key) in enumerate(keys.KEYS):
+            marker = build_piano_key(now.to_msg(), key.bb.x, key.bb.z)
             marker.id = i-1
             self.pub.publish(marker)
+        #for i in range(10):
+        #   marker = build_piano_key(now.to_msg(), 1.0 + (0.025 + 0.001) * i, 1.0)
+        #   marker.id = i-1
+        #   self.pub.publish(marker)
 
 
 # TODO: This is really inefficient. We don't need to be constantly re-sending the markers.
