@@ -158,6 +158,7 @@ class KinematicChain():
     def setjoints(self, q):
         # Check the number of joints
         if (len(q) != self.dofs):
+            print(len(q), self.dofs)
             self.error("Number of joint angles (%d) does not match URDF (%d)",
                        len(q), self.dofs)
 
