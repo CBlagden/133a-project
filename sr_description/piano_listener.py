@@ -5,6 +5,12 @@ from KinematicChain    import KinematicChain
 
 import keys
 
+
+from mingus.containers import Note
+from mingus.midi import fluidsynth
+
+fluidsynth.init('/usr/share/sounds/sf2/FluidR3_GM.sf2', 'alsa')
+
 class PianoKeyTracker():
     PRESSED = 1
     UNPRESSED = 0
@@ -14,6 +20,7 @@ class PianoKeyTracker():
         self.old_keystates = {key:False for key in keys.KEYS.keys()}
         self.keystates = {key:False for key in keys.KEYS.keys()}
 
+
     def handle_pos(self, pos):
         for (key, bb) in keys.KEYS.items():
             if bb.contains(pos):
@@ -22,14 +29,21 @@ class PianoKeyTracker():
     def update(self):
         for key in keys.KEYS.keys():
             if self.old_keystates[key] == self.UNPRESSED and self.keystates[key] == self.PRESSED:
+                # 127 is max volume
+                volume = 127
+                fluidsynth.play_Note(Note(f"{key}-4"), volume)
                 print(f"{key} was pressed")
             elif self.old_keystates[key] == self.PRESSED and self.keystates[key] == self.UNPRESSED:
+                channel = 1
+                fluidsynth.stop_Note(Note(f"{key}-4"), channel)
                 print(f"{key} was released")
 
         self.old_keystates = self.keystates
 
         # reset self.keystates
         self.keystates = {key:False for key in keys.KEYS.keys()}
+
+    
 
 
 
