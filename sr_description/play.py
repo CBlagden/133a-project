@@ -30,11 +30,6 @@ N_FINGER_JOINTS = 4
 
 
 
-def spline(t, T, p0, pf):
-    p = p0 + (pf-p0) * (3*t**2/T**2 - 2*t**3/T**3)
-    v =      (pf-p0) * (6*t   /T**2 - 6*t**2/T**3)
-    return (p, v)
-
 def dedup(lst):
     lookup = set()
     return [x for x in lst if not (x in lookup or lookup.add(x))]
@@ -71,7 +66,7 @@ class Trajectory():
         self.right_t0 = 0.0
 
         self.q_centers = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), FINGER_CENTERS, FINGER_CENTERS])
-        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 0 * np.ones((N_FINGER_JOINTS * 2, 1))])
+        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 10 * np.ones((N_FINGER_JOINTS * 2, 1))])
 
     def build_J(self):
         paJw = self.pachain.Jw()
@@ -113,8 +108,8 @@ class Trajectory():
         return self.joints
 
     def get_note_position(self, note: Note) -> np.ndarray:
-        key_pos = KEYS_MAPPING[note.note]
-        return np.array([key_pos.x, key_pos.y, key_pos.z]).reshape((3, 1))
+        bb = KEYS_MAPPING[note.note]
+        return bb.center().reshape((3, 1))
 
     def build_segments(self, p0: np.ndarray, notes: List[Note]) -> List[SplineCubic]:
         segments = []
@@ -124,17 +119,18 @@ class Trajectory():
                 move_duration = 3
             else:
                 pA = self.get_note_position(notes[i - 1])
-                move_duration = note.start - notes[i - 1].start
+                move_duration = note.start - notes[i - 1].start - notes[i-1].duration
             pB = self.get_note_position(note)
             segments.append(GotoCubic(pA, pB, move_duration))
             segments.append(Hold(pB, note.duration))
         segments.append(Stay(pB))
+
         return segments
 
     def get_segment_desired(self, t: float, t0: float, segments: List[SplineCubic]) -> Tuple[np.ndarray, np.ndarray]:
         if segments[0].completed(t - t0):
             t0 = t0 + segments[0].duration()
-            segments.pop()
+            segments.pop(0)
         (x, xdot) = segments[0].evaluate(t - t0)
         return (x, xdot, t0)
 
@@ -147,9 +143,8 @@ class Trajectory():
         pa_wd = exyz(1, 0, 1)
 
         (th_x_desired, th_v_desired, self.left_t0) = self.get_segment_desired(t, self.left_t0, self.left_segments)
-
-        (mf_x_desired, mf_v_desired, self.right_t0) = self.get_segment_desired(t, self.right_t0, self.right_segments)
         
+        (mf_x_desired, mf_v_desired, self.right_t0) = self.get_segment_desired(t, self.right_t0, self.right_segments)
         # th_x_desired = np.array([100, 100, 2*np.sin(15*t)]).reshape((3,1)) * 0.01
         # mf_x_desired = np.array([105, 100, 2*np.sin(15*t)]).reshape((3,1)) * 0.01
 
