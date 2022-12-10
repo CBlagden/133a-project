@@ -1,3 +1,5 @@
+import numpy as np
+
 SX = 0.025
 SY = 0.09
 SZ = 0.025
@@ -29,5 +31,5 @@ key_names = ["C","D","E","F","G","A","B"]
 
 KEYS = {}
 for (i, key_name) in enumerate(key_names):
-    bb = BoundingBox(1.0 + (SX + KEY_SPACING) * i - SX/2, 1.0 - SY/2, -SZ/2, SX, SY, SZ)
+    bb = BoundingBox(1.0 + (SX + KEY_SPACING) * i - SX/2, 1.0 - SY/2, -SZ, SX, SY, SZ)
     KEYS[key_name] = bb
