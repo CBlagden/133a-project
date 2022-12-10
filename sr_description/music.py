@@ -56,6 +56,40 @@ for i, (note, finger) in enumerate(l_theme_mappings):
     l_theme.append(Note(note, (NOTE_DUR + INTER_NOTE_DUR) * i, NOTE_DUR, finger))
 
 
+
+little_lamb_mappings = [
+        ("E", "R"),
+        ("D", "L"),
+        ("C", "L"),
+        ("D", "R"),
+        ("E", "R"),
+        ("E", "R"),
+        ("E", "R"),
+        ("D", "L"),
+        ("D", "L"),
+        ("D", "L"),
+        ("E", "L"),
+        ("G", "R"),
+        ("G", "R"),
+        ("E", "R"),
+        ("D", "R"),
+        ("C", "L"),
+        ("D", "L"),
+        ("E", "R"),
+        ("E", "R"),
+        ("E", "R"),
+        ("E", "R"),
+        ("D", "L"),
+        ("D", "L"),
+        ("E", "R"),
+        ("D", "R"),
+        ("C", "L")
+        ]
+
+little_lamb = []
+for i, (note, finger) in enumerate(little_lamb_mappings):
+    little_lamb.append(Note(note, (NOTE_DUR + INTER_NOTE_DUR) * i, NOTE_DUR, finger))
+
 if __name__ == "__main__":
     print("Song")
     print(l_theme)

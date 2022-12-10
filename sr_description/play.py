@@ -12,7 +12,8 @@ from GeneratorNode     import GeneratorNode
 from KinematicChain    import KinematicChain
 from TransformHelpers  import *
 from Segments import *
-from music import l_theme as NOTES
+#from music import l_theme as NOTES
+from music import little_lamb as NOTES
 from music import Note
 from keys import KEYS as KEYS_MAPPING
 
@@ -34,7 +35,7 @@ def dedup(lst):
     lookup = set()
     return [x for x in lst if not (x in lookup or lookup.add(x))]
 
-FINGER_CENTERS = np.array([-0.1, -0.1, -0.1, -0.1]).reshape((-1,1))
+FINGER_CENTERS = -1 * np.array([-0.0, -0.2, -0.2, -0.4]).reshape((-1,1))
 
 class Trajectory():
 
@@ -67,7 +68,7 @@ class Trajectory():
         self.right_t0 = 0.0
 
         self.q_centers = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), FINGER_CENTERS, FINGER_CENTERS])
-        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 20 * np.ones((N_FINGER_JOINTS * 2, 1))])
+        self.lams = np.vstack([np.zeros((N_SHARED_JOINTS, 1)), 80 * np.ones((N_FINGER_JOINTS * 2, 1))])
 
     def build_J(self):
         paJw = self.pachain.Jw()
