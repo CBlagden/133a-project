@@ -5,7 +5,6 @@ from KinematicChain    import KinematicChain
 
 import keys
 
-
 from mingus.containers import Note
 from mingus.midi import fluidsynth
 
@@ -15,11 +14,9 @@ class PianoKeyTracker():
     PRESSED = 1
     UNPRESSED = 0
 
-    # TODO: Fill in the pseudocode here.
     def __init__(self):
         self.old_keystates = {key:False for key in keys.KEYS.keys()}
         self.keystates = {key:False for key in keys.KEYS.keys()}
-
 
     def handle_pos(self, pos):
         for (key, bb) in keys.KEYS.items():
@@ -42,12 +39,6 @@ class PianoKeyTracker():
 
         # reset self.keystates
         self.keystates = {key:False for key in keys.KEYS.keys()}
-
-    
-
-
-
-
 
 class PianoPlayer(Node):
 
