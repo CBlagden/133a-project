@@ -12,7 +12,7 @@ from GeneratorNode     import GeneratorNode
 from KinematicChain    import KinematicChain
 from TransformHelpers  import *
 from Segments import *
-#from music import l_theme as NOTES
+from music import l_theme as NOTES
 from music import little_lamb as NOTES
 from music import Note
 from keys import KEYS as KEYS_MAPPING
@@ -48,7 +48,7 @@ class Trajectory():
 
 
         self.joints = dedup(self.pachain.jointnames + self.thchain.jointnames + self.mfchain.jointnames)
-        self.lam = 100
+        self.lam = 60 
         print(self.joints)
 
         self.q = np.zeros((len(self.joints), 1)).reshape((-1,1))
@@ -60,7 +60,7 @@ class Trajectory():
         self.th_x_desired_prev = self.th_p0
         self.mf_x_desired_prev = self.mf_p0
 
-        INITIAL_DURATION = 3.0 
+        INITIAL_DURATION = 3.0
         self.left_segments = self.build_segments(self.th_p0, INITIAL_DURATION, LEFT_NOTES)
         self.right_segments = self.build_segments(self.mf_p0, INITIAL_DURATION, RIGHT_NOTES)
 
@@ -85,7 +85,6 @@ class Trajectory():
 
         zeros = np.zeros(th.shape)
 
-        
         pa_orientation = np.hstack([paJw, zeros, zeros])
         height_pa =      np.hstack([shared, zeros, zeros])[2, :].reshape((1,16))
         full_th =        np.hstack([shared, th, zeros])
@@ -130,7 +129,7 @@ class Trajectory():
                 pA = self.get_note_position(notes[i - 1])
                 move_duration = note.start - notes[i - 1].start - notes[i-1].duration
                 pB = self.get_note_position(note)
-                
+
                 segments.append(GotoCubic(pA, pA + delta_z, move_duration / 8))
                 segments.append(GotoCubic(pA + delta_z, pB + delta_z, 3 * move_duration / 4))
                 segments.append(GotoCubic(pB + delta_z, pB, move_duration / 8))
@@ -139,7 +138,7 @@ class Trajectory():
 
         return segments
 
-    def get_segment_desired(self, t: float, t0: float, segments: List[SplineCubic]) -> Tuple[np.ndarray, np.ndarray]:
+    def get_segment_desired(self, t: float, t0: float, segments: List[SplineCubic]) -> Tuple[np.ndarray, np.ndarray, float]:
         if segments[0].completed(t - t0):
             t0 = t0 + segments[0].duration()
             segments.pop(0)
@@ -155,13 +154,20 @@ class Trajectory():
         pa_wd = exyz(1, 0, 1)
 
         (th_x_desired, th_v_desired, self.left_t0) = self.get_segment_desired(t, self.left_t0, self.left_segments)
-        
         (mf_x_desired, mf_v_desired, self.right_t0) = self.get_segment_desired(t, self.right_t0, self.right_segments)
-        # th_x_desired = np.array([100, 100, 2*np.sin(15*t)]).reshape((3,1)) * 0.01
-        # mf_x_desired = np.array([105, 100, 2*np.sin(15*t)]).reshape((3,1)) * 0.01
 
-        # th_v_desired = np.array([0,   0,   np.cos(t)]).reshape((3,1)) * 0.01
-        # mf_v_desired = np.array([0,   0,   np.cos(t)]).reshape((3,1)) * 0.01
+        print(t)
+        print("vels", th_v_desired)
+        print(mf_v_desired)
+        print("pos", th_x_desired)
+        print(mf_x_desired)
+        if np.max(np.abs(th_v_desired)) > 2 or np.max(np.abs(mf_v_desired)) > 2:
+            print("BIGGG ALERT" + 100 * "-")
+
+        if np.max(np.abs(th_v_desired)) > 5:
+            th_v_desired = 0.05 * th_v_desired
+        if np.max(np.abs(mf_v_desired)) > 5:
+            mf_v_desired = 0.05 * mf_v_desired
 
         pa_x_desired = np.array([1]).reshape((1,1)) * 0.01
         pa_v_desired = np.array([0]).reshape((1,1)) * 0.01
@@ -172,7 +178,7 @@ class Trajectory():
 
 
         J = self.build_J()
-        Jinv = J.T @ np.linalg.inv(J @ J.T + 0.0001 * np.eye(10))
+        Jinv = J.T @ np.linalg.inv(J @ J.T + 0.001 * np.eye(10))
         xdot = np.vstack([pa_wd, pa_v_desired, th_v_desired, mf_v_desired])
 
 
