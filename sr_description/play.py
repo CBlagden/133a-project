@@ -13,7 +13,7 @@ from KinematicChain    import KinematicChain
 from TransformHelpers  import *
 from Segments import *
 from music import l_theme as NOTES
-from music import little_lamb as NOTES
+# from music import little_lamb as NOTES
 from music import Note
 from keys import KEYS as KEYS_MAPPING
 
