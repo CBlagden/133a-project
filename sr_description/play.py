@@ -121,7 +121,12 @@ class Trajectory():
                 pA = self.get_note_position(notes[i - 1])
                 move_duration = note.start - notes[i - 1].start - notes[i-1].duration
             pB = self.get_note_position(note)
-            segments.append(GotoCubic(pA, pB, move_duration))
+
+            delta_z = np.array([0, 0, 0.03]).reshape((-1, 1))
+
+            segments.append(GotoCubic(pA, pA + delta_z, move_duration / 3))
+            segments.append(GotoCubic(pA + delta_z, pB + delta_z, move_duration / 3))
+            segments.append(GotoCubic(pB + delta_z, pB, move_duration / 3))
             segments.append(Hold(pB, note.duration))
         segments.append(Stay(pB))
 
