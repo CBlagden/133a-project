@@ -3,22 +3,7 @@ from rclpy.node import Node
 from sensor_msgs.msg    import JointState
 from KinematicChain    import KinematicChain
 
-class BoundingBox():
-
-    def __init__(self, x, y, z, sx, sy, sz):
-        assert(sx > 0 and sy > 0 and sz > 0)
-        self.x = x
-        self.y = y
-        self.z = z
-        self.sx = sx
-        self.sy = sy
-        self.sz = sz
-
-    def contains(pos):
-        return self.x < pos[0] < self.x + self.sx and \
-               self.y < pos[1] < self.y + self.sy and \
-               self.z < pos[2] < self.z + self.sz
-
+import keys
 
 class PianoKeyTracker():
     PRESSED = 1
@@ -26,24 +11,25 @@ class PianoKeyTracker():
 
     # TODO: Fill in the pseudocode here.
     def __init__(self):
-        self.old_keystates = []
-        self.keystates = []
+        self.old_keystates = {key:False for key in keys.KEYS.keys()}
+        self.keystates = {key:False for key in keys.KEYS.keys()}
 
     def handle_pos(self, pos):
-        for (key, bb) in bounding_boxes:
+        for (key, bb) in keys.KEYS.items():
             if bb.contains(pos):
-                self.keys[key] = PRESSED
+                self.keystates[key] = self.PRESSED
 
     def update(self):
-        for key in keys:
-            if self.old_keystates[key] == UNPRESSED and self.keystates[key] == PRESSED:
-                # Emit something saying the key has been pressed
-            elif self.old_keystates[key] == PRESSED and self.keystates[key] == UNPRESSED:
-                # Emit something saying the key has been released
+        for key in keys.KEYS.keys():
+            if self.old_keystates[key] == self.UNPRESSED and self.keystates[key] == self.PRESSED:
+                print(f"{key} was pressed")
+            elif self.old_keystates[key] == self.PRESSED and self.keystates[key] == self.UNPRESSED:
+                print(f"{key} was released")
 
         self.old_keystates = self.keystates
+
         # reset self.keystates
-        self.keystates = []
+        self.keystates = {key:False for key in keys.KEYS.keys()}
 
 
 
@@ -67,6 +53,8 @@ class PianoPlayer(Node):
         self.mfchain = KinematicChain(self, 'world', 'rh_mftip')
         self.initialized = True
 
+        self.key_tracker = PianoKeyTracker()
+
     def listener_callback(self, msg):
         if not self.initialized:
             return
@@ -81,7 +69,9 @@ class PianoPlayer(Node):
         self.mfchain.setjoints(mf_angles)
         mf_pos = self.mfchain.ptip()
 
-        # TODO: TRACK POSITIONS TO SEE WHICH KEYS ARE PRESSED
+        self.key_tracker.handle_pos(ff_pos)
+        self.key_tracker.handle_pos(mf_pos)
+        self.key_tracker.update()
 
 
 def main(args=None):

@@ -7,7 +7,7 @@ from visualization_msgs.msg import Marker
 import keys
 
 
-def build_piano_key(tstamp, px, py):
+def build_piano_key(tstamp, p):
     # Build up a command message and publish.
     marker = Marker()
     marker.header.stamp = tstamp
@@ -16,9 +16,11 @@ def build_piano_key(tstamp, px, py):
     marker.scale.x = keys.SX
     marker.scale.y = keys.SY
     marker.scale.z = keys.SZ
-    marker.pose.position.x = px
-    marker.pose.position.y = py
-    marker.pose.position.z = -marker.scale.z/2
+    # The positions define the _center_ of the cube
+    marker.pose.position.x = p[0]
+    marker.pose.position.y = p[1]
+    marker.pose.position.z = p[2]
+
     marker.color.r = 1.0
     marker.color.g = 1.0
     marker.color.b = 1.0
@@ -86,14 +88,10 @@ class MarkerNode(Node):
 
 
         # Build up a command message and publish.
-        for (i, key) in enumerate(keys.KEYS):
-            marker = build_piano_key(now.to_msg(), key.bb.x, key.bb.z)
+        for (i, bb) in enumerate(keys.KEYS.values()):
+            marker = build_piano_key(now.to_msg(), bb.center())
             marker.id = i-1
             self.pub.publish(marker)
-        #for i in range(10):
-        #   marker = build_piano_key(now.to_msg(), 1.0 + (0.025 + 0.001) * i, 1.0)
-        #   marker.id = i-1
-        #   self.pub.publish(marker)
 
 
 # TODO: This is really inefficient. We don't need to be constantly re-sending the markers.
