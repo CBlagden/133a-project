@@ -12,8 +12,9 @@ from GeneratorNode     import GeneratorNode
 from KinematicChain    import KinematicChain
 from TransformHelpers  import *
 from Segments import *
-from music import l_theme as NOTES
-# from music import little_lamb as NOTES
+# from music import l_theme as NOTES
+#from music import little_lamb as NOTES
+from music import ode_to_joy as NOTES
 from music import Note
 from keys import KEYS as KEYS_MAPPING
 
@@ -48,7 +49,7 @@ class Trajectory():
 
 
         self.joints = dedup(self.pachain.jointnames + self.thchain.jointnames + self.mfchain.jointnames)
-        self.lam = 60 
+        self.lam = 60
         print(self.joints)
 
         self.q = np.zeros((len(self.joints), 1)).reshape((-1,1))
@@ -163,11 +164,6 @@ class Trajectory():
         print(mf_x_desired)
         if np.max(np.abs(th_v_desired)) > 2 or np.max(np.abs(mf_v_desired)) > 2:
             print("BIGGG ALERT" + 100 * "-")
-
-        if np.max(np.abs(th_v_desired)) > 5:
-            th_v_desired = 0.05 * th_v_desired
-        if np.max(np.abs(mf_v_desired)) > 5:
-            mf_v_desired = 0.05 * mf_v_desired
 
         pa_x_desired = np.array([1]).reshape((1,1)) * 0.01
         pa_v_desired = np.array([0]).reshape((1,1)) * 0.01

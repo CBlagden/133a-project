@@ -29,10 +29,12 @@ class PianoKeyTracker():
                 # 127 is max volume
                 volume = 127
                 fluidsynth.play_Note(Note(f"{key}-4"), volume)
+                fluidsynth.play_Note(Note(f"{key}-5"), volume)
                 print(f"{key} was pressed")
             elif self.old_keystates[key] == self.PRESSED and self.keystates[key] == self.UNPRESSED:
                 channel = 1
                 fluidsynth.stop_Note(Note(f"{key}-4"), channel)
+                fluidsynth.stop_Note(Note(f"{key}-5"), channel)
                 print(f"{key} was released")
 
         self.old_keystates = self.keystates
