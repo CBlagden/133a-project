@@ -96,66 +96,69 @@ HALF = NOTE_DUR * 2
 DOTTED_QUARTER = NOTE_DUR * 1.5
 QUARTER = NOTE_DUR
 ode_to_joy_mappings = [
-    ("E", "R", QUARTER),
-    ("E", "L", QUARTER),
-    ("F", "R", QUARTER),
-    ("G", "R", QUARTER),
-    ("G", "R", QUARTER),
-    ("F", "R", QUARTER),
-    ("E", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("E", "R", QUARTER),
-    ("E", "R", DOTTED_QUARTER),
-    ("D", "R", EIGTH),
-    ("D", "R", HALF),
+    [("E", "R", QUARTER), ("C", "L", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("F", "R", QUARTER)],
+    [("G", "R", QUARTER)],
+    [("G", "R", QUARTER), ("E", "L", QUARTER)],
+    [("F", "R", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("C", "L", DOTTED_QUARTER), ("E", "R", DOTTED_QUARTER)],
+    [("D", "R", EIGTH)],
+    [("D", "L", HALF)],
 
-    ("E", "R", QUARTER),
-    ("E", "R", QUARTER),
-    ("F", "R", QUARTER),
-    ("G", "R", QUARTER),
-    ("G", "R", QUARTER),
-    ("F", "R", QUARTER),
-    ("E", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("E", "R", QUARTER),
-    ("D", "R", DOTTED_QUARTER),
-    ("C", "R", EIGTH),
-    ("C", "R", HALF),
+    [("E", "R", QUARTER), ("C", "L", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("F", "R", QUARTER)],
+    [("G", "R", QUARTER)],
+    [("G", "R", QUARTER), ("E", "L", QUARTER)],
+    [("F", "R", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("D", "L", DOTTED_QUARTER)],
+    [("C", "L", EIGTH)],
+    [("C", "L", HALF)],
 
 
-    ("D", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("E", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("E", "R", EIGTH),
-    ("F", "R", EIGTH),
-    ("E", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("E", "R", EIGTH),
-    ("F", "R", EIGTH),
-    ("E", "R", QUARTER),
-    ("D", "R", QUARTER),
-    ("C", "R", QUARTER),
-    ("D", "L", QUARTER),
-    ("G", "R", HALF)
+    [("D", "L", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("E", "R", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("E", "R", EIGTH)],
+    [("F", "R", EIGTH)],
+    [("E", "R", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("E", "R", EIGTH)],
+    [("F", "R", EIGTH)],
+    [("E", "R", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("C", "L", QUARTER)],
+    [("D", "L", QUARTER)],
+    [("G", "R", HALF), ("C", "L", HALF)]
     ]
 
 ode_to_joy = []
-for i, (note, finger, duration) in enumerate(ode_to_joy_mappings):
-    if i == 0:
-        ode_to_joy.append(Note(note, 0, duration, finger))
-    else:
-        ode_to_joy.append(Note(note, INTER_NOTE_DUR + ode_to_joy[-1].start + ode_to_joy[-1].duration, duration, finger))
+for i, noteset in enumerate(ode_to_joy_mappings):
+    new_notes = []
+    for (note, finger, duration) in noteset:
+        if i == 0:
+            new_notes.append(Note(note, 0, duration, finger))
+        else:
+            new_notes.append(Note(note, INTER_NOTE_DUR + ode_to_joy[-1].start + ode_to_joy[-1].duration, duration, finger))
+    ode_to_joy = ode_to_joy + new_notes
 
-ode_to_joy.insert(0, Note("C", 0, NOTE_DUR, "L"))
+#ode_to_joy.insert(0, Note("C", 0, NOTE_DUR, "L"))
 
 
 if __name__ == "__main__":
